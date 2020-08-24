@@ -1,12 +1,10 @@
 'use strict';
-
+const { Op } = require('sequelize');
 const Controller = require('egg').Controller;
 
 module.exports = class UserController extends Controller {
   // 登录验证回调
-  async loginCallback() {
-    const { ctx } = this;
-
+  async loginCallback(ctx) {
     if (ctx.isAuthenticated()) return ctx.success(ctx.user);
 
     return ctx.fail('用户名或密码错误！');
@@ -43,11 +41,33 @@ module.exports = class UserController extends Controller {
 
   // 获取所有用户
   async getAll(ctx) {
-    const { User } = ctx.model;
+    const { username, pageNum = 1, pageSize = 10 } = ctx.query;
 
-    const results = await User.findAll();
+    const { User, Role, Permission } = ctx.model;
 
-    ctx.success(results);
+    const conditions = [];
+    if (username) {
+      conditions.push({ username: { [Op.like]: `%${username.trim()}%` } });
+    }
+
+    const options = {
+      offset: (pageNum - 1) * pageSize,
+      limit: +pageSize,
+      include: {
+        model: Role,
+        include: Permission,
+      },
+      where: {
+        [Op.and]: [ conditions ],
+      },
+      order: [
+        [ 'updatedAt', 'DESC' ],
+      ],
+    };
+
+    const { count, rows } = await User.findAndCountAll(options);
+
+    ctx.success({ rows, count });
   }
 
   // 获取用户详情

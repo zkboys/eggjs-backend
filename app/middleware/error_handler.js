@@ -8,13 +8,14 @@ module.exports = () => {
       const status = err.status || 500;
       const { code = -1, data, isCtxFail, error: ctxFailError } = err;
 
-      // 所有的异常都在 app 上触发一个 error 事件，框架会记录一条错误日志
-      // TODO ctxFailError 是否需要记录日志？
-      ctx.app.emit('error', err, ctx);
-
       let error = err;
 
       if (isCtxFail) error = ctxFailError;
+
+
+      // 所有的异常都在 app 上触发一个 error 事件，框架会记录一条错误日志
+      // TODO ctxFailError 是否需要记录日志？
+      ctx.app.emit('error', error, ctx);
 
       // 生产环境时 500 错误的详细错误内容不返回给客户端，因为可能包含敏感信息
       if (status === 500 && ctx.app.config.env === 'prod') error = Error('Internal Server Error');

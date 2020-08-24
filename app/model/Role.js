@@ -1,10 +1,16 @@
 'use strict';
 
 module.exports = app => {
-  const { STRING, INTEGER } = app.Sequelize;
+  const { STRING, UUID, UUIDV4 } = app.Sequelize;
 
   const Role = app.model.define('role', {
-    id: { type: INTEGER, unique: true, primaryKey: true, autoIncrement: true },
+    id: {
+      type: UUID,
+      allowNull: false,
+      primaryKey: true,
+      unique: true,
+      defaultValue: UUIDV4,
+    },
     name: STRING(200),
     description: STRING(500),
   });
@@ -14,16 +20,12 @@ module.exports = app => {
   Role.associate = function() {
     // 与User表是多对多关系
     app.model.Role.belongsToMany(app.model.User, {
-      through: app.model.RoleUser,
-      foreignKey: 'roleId',
-      otherKey: 'userId',
+      through: 'RoleUser',
     });
 
     // 与permission表示多对多关系
     app.model.Role.belongsToMany(app.model.Permission, {
-      through: app.model.RolePermission,
-      foreignKey: 'roleId',
-      otherKey: 'permissionId',
+      through: 'RolePermission',
     });
   };
 

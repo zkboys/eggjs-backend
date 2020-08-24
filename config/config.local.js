@@ -17,6 +17,7 @@ module.exports = () => {
     password: '123456',
     database: 'egg-demo',
     timezone: '+08:00',
+    logging: false,
   };
 
   return exports;

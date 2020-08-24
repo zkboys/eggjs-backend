@@ -27,6 +27,13 @@ module.exports = appInfo => {
     // myAppName: 'egg',
   };
 
+  config.session = {
+    key: 'SESSION_ID',
+    maxAge: 24 * 3600 * 1000, // 1 天
+    httpOnly: true,
+    encrypt: true,
+  };
+
   // 页面模板引擎
   config.view = {
     mapping: {

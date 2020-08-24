@@ -3,11 +3,11 @@ const LocalStrategy = require('passport-local').Strategy;
 
 module.exports = app => {
   /** 同步数据库 */
-  // if (app.config.env === 'local' || app.config.env === 'unittest') {
-  //   app.beforeStart(async () => {
-  //     await app.model.sync({ force: true });
-  //   });
-  // }
+  if (app.config.env === 'local' || app.config.env === 'unittest') {
+    app.beforeStart(async () => {
+      await app.model.sync({ force: true });
+    });
+  }
 
   /** 挂载 strategy */
   app.passport.use(new LocalStrategy({ passReqToCallback: true }, (req, username, password, done) => {
@@ -31,7 +31,7 @@ module.exports = app => {
     const userService = ctx.service.user;
 
     const foundUser = await User.findOne({ where: { username: user.username } });
-    console.log(user.password);
+
     if (!foundUser || !userService.comparePassword(user.password, foundUser.password)) return false;
 
     return foundUser;

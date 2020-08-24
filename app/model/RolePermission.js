@@ -1,10 +1,16 @@
 'use strict';
 module.exports = app => {
-  const { INTEGER } = app.Sequelize;
+  const { UUID, UUIDV4 } = app.Sequelize;
 
   return app.model.define('role_permission', {
-    id: { type: INTEGER, unique: true, primaryKey: true, autoIncrement: true },
-    roleId: INTEGER,
-    permissionId: INTEGER,
+    id: {
+      type: UUID,
+      allowNull: false,
+      primaryKey: true,
+      unique: true,
+      defaultValue: UUIDV4,
+    },
+    roleId: UUID,
+    permissionId: UUID,
   });
 };
