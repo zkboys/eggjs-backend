@@ -20,9 +20,17 @@
     "autod": "autod"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "egg": "^2.27.0",
+    "egg-cors": "^2.2.3",
+    "egg-passport": "^2.1.1",
+    "egg-passport-local": "^1.2.1",
     "egg-scripts": "^2.13.0",
-    "egg-view-ejs": "^2.0.1"
+    "egg-sequelize": "^5.2.2",
+    "egg-validate": "^2.0.2",
+    "egg-view-ejs": "^2.0.1",
+    "mysql2": "^2.1.0",
+    "path-to-regexp": "^6.1.0"
   },
   "devDependencies": {
     "autod": "^3.1.0",

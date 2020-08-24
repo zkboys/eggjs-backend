@@ -3,6 +3,7 @@
 const Controller = require('egg').Controller;
 
 class HomeController extends Controller {
+
   async index() {
     const { ctx } = this;
     // ctx.ok('你好 eggjs');

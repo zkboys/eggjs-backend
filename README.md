@@ -30,8 +30,9 @@ $ npm stop
 - Use `npm run autod` to auto detect dependencies upgrade, see [autod](https://www.npmjs.com/package/autod) for more detail.
 
 ## 资料
-- [egg-view-nunjucks](https://github.com/eggjs/egg-view-nunjucks)
-- [egg-view-ejs](https://github.com/eggjs/egg-view-ejs)
+- [页面模板 egg-view-ejs](https://github.com/eggjs/egg-view-ejs)
+- [数据库 sequelize](https://sequelize.org/)
+- [数据库 egg-sequelize](https://github.com/eggjs/egg-sequelize)
 
 [egg]: https://eggjs.org
 
