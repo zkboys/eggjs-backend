@@ -3,7 +3,9 @@
 module.exports = app => {
   const { router, controller } = app;
 
-  const { user } = controller;
+  const { user, home } = controller;
+
+  router.get('/test', home.index);
 
   // api开头的为接口
 
@@ -37,5 +39,5 @@ module.exports = app => {
 
   // 所有页面请求 返回首页
   // TODO 区分是页面请求，还是其他ajax 请求、静态文件请求
-  router.get('/*', async ctx => ctx.render('index.html'));
+  // router.get('/*', async ctx => ctx.render('index.html'));
 };

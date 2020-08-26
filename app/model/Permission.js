@@ -21,7 +21,7 @@ module.exports = app => {
   Permission.associate = function() {
     // 与Role表是多对多关系
     app.model.Permission.belongsToMany(app.model.Role, {
-      through: 'RolePermission',
+      through: app.model.RolePermission,
     });
   };
   return Permission;

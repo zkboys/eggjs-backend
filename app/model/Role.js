@@ -20,12 +20,12 @@ module.exports = app => {
   Role.associate = function() {
     // 与User表是多对多关系
     app.model.Role.belongsToMany(app.model.User, {
-      through: 'RoleUser',
+      through: app.model.RoleUser,
     });
 
     // 与permission表示多对多关系
     app.model.Role.belongsToMany(app.model.Permission, {
-      through: 'RolePermission',
+      through: app.model.RolePermission,
     });
   };
 

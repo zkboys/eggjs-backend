@@ -36,7 +36,8 @@
     "egg-validate": "^2.0.2",
     "egg-view-ejs": "^2.0.1",
     "mysql2": "^2.1.0",
-    "path-to-regexp": "^6.1.0"
+    "path-to-regexp": "^6.1.0",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "autod": "^3.1.0",
