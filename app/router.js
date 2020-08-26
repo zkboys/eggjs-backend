@@ -5,11 +5,6 @@ module.exports = app => {
 
   const { user } = controller;
 
-  // 页面
-  router.get('/', async ctx => ctx.render('index.ejs'));
-  router.get('/login', async ctx => await ctx.render('login.ejs'));
-  router.get('/register', async ctx => ctx.render('register.ejs'));
-
   // api开头的为接口
 
   // 退出登录
@@ -38,4 +33,9 @@ module.exports = app => {
 
   // 修改密码
   router.put('/api/usersPassword', user.updatePassword);
+
+
+  // 所有页面请求 返回首页
+  // TODO 区分是页面请求，还是其他ajax 请求、静态文件请求
+  router.get('/*', async ctx => ctx.render('index.html'));
 };

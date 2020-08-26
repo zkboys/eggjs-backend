@@ -2,26 +2,58 @@
 
 基于 eggjs 的node后端框架
 
-## QuickStart
+## 快速开始
+更多信息请查看[egg 官方文档][egg]
 
-<!-- add docs here for user -->
-
-see [egg docs][egg] for more detail.
-
-### Development
+### 开发
 
 ```bash
+# 安装后端依赖
 $ npm i --registry https://registry.npm.taobao.org
+
+# 安装前端依赖
+$ cd front 
+$ yarn 
+
+# 前后端同时启动
 $ npm run dev
-$ open http://localhost:7001/
+
+# 单独启动后端
+$ npm run dev-back
+
+# 单独启动前端
+$ npm run dev-front
+
+# 浏览器访问
+$ open http://localhost:4000/
 ```
 
-### Deploy
+### 发布
 
 ```bash
+
+# 前端构建
+$ npm run build-front
+
+# 安装后端依赖
+$ npm install --production --registry https://registry.npm.taobao.org
+
+# 删除前端源码
+$ rm -rf front
+
+# 项目整体打包成 tgz文件，部署时候解压即可
+
+# 启动服务
 $ npm start
+
+# 停止服务
 $ npm stop
+
+
+# 服务器上一键拉取代码、构建、发布
+$ npm run deploy
 ```
+注：前端文件有缓存，更新后，也要重启后端服务。
 
 ### npm scripts
 
