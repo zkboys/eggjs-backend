@@ -31,10 +31,7 @@ module.exports = app => {
     app.model.User.belongsToMany(app.model.Role, {
       through: app.model.RoleUser,
     });
-  };
 
-
-  User.associate = function() {
     // 与Department存在多对多关系，使用belongsToMany()
     app.model.User.belongsToMany(app.model.Department, {
       through: app.model.DepartmentUser,

@@ -41,14 +41,15 @@ module.exports = class UserController extends Controller {
 
   // 获取所有用户
   async getAll(ctx) {
-    const { username, pageNum = 1, pageSize = 10 } = ctx.query;
+    const { pageNum = 1, pageSize = 10, name, position } = ctx.query;
 
     const { User, Role, Permission } = ctx.model;
 
     const conditions = [];
-    if (username) {
-      conditions.push({ username: { [Op.like]: `%${username.trim()}%` } });
-    }
+
+    if (name) conditions.push({ name: { [Op.like]: `%${name.trim()}%` } });
+    
+    if (position) conditions.push({ position: { [Op.like]: `%${position.trim()}%` } });
 
     const options = {
       offset: (pageNum - 1) * pageSize,

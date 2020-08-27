@@ -1,20 +1,20 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
     CaretDownOutlined,
     EditOutlined,
     LogoutOutlined,
     SettingOutlined,
 } from '@ant-design/icons';
-import {Menu, Dropdown} from 'antd';
-import {Link} from 'react-router-dom';
-import {toLogin, getLoginUser} from 'src/commons';
+import { Menu, Dropdown } from 'antd';
+import { Link } from 'react-router-dom';
+import { toLogin, getLoginUser } from 'src/commons';
 import ModifyPassword from './ModifyPassword';
 import config from 'src/commons/config-hoc';
 import './style.less';
 
 const Item = Menu.Item;
 
-@config({ajax: true})
+@config({ ajax: true })
 export default class HeaderUser extends Component {
     static defaultProps = {
         theme: 'default',
@@ -24,13 +24,13 @@ export default class HeaderUser extends Component {
         passwordVisible: false,
     };
 
-    handleMenuClick = ({key}) => {
+    handleMenuClick = ({ key }) => {
         if (key === 'logout') {
-            this.props.ajax.post('/mock/logout').then(toLogin);
+            this.props.ajax.post('/logout').then(toLogin);
         }
 
         if (key === 'modifyPassword') {
-            this.setState({passwordVisible: true});
+            this.setState({ passwordVisible: true });
         }
     };
 
@@ -38,7 +38,7 @@ export default class HeaderUser extends Component {
         const user = getLoginUser() || {};
         const name = user.name;
 
-        const {className, theme} = this.props;
+        const { className, theme } = this.props;
 
         const menu = (
             <Menu styleName="menu" theme={theme} selectedKeys={[]} onClick={this.handleMenuClick}>
@@ -59,8 +59,8 @@ export default class HeaderUser extends Component {
 
                 <ModifyPassword
                     visible={this.state.passwordVisible}
-                    onOk={() => this.setState({passwordVisible: false})}
-                    onCancel={() => this.setState({passwordVisible: false})}
+                    onOk={() => this.setState({ passwordVisible: false })}
+                    onCancel={() => this.setState({ passwordVisible: false })}
                 />
             </div>
         );

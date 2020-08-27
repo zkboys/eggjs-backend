@@ -7,7 +7,7 @@ module.exports = function (app) {
         {
             target: 'http://localhost:3000/',
             pathRewrite: {
-                ['^' + prefix]: '', // 如果后端接口无前缀，可以通过这种方式去掉
+                // ['^' + prefix]: '', // 如果后端接口无前缀，可以通过这种方式去掉
             },
             changeOrigin: true,
             secure: false, // 是否验证证书
