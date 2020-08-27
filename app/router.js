@@ -2,39 +2,38 @@
 
 module.exports = app => {
   const { router, controller } = app;
-
-  const { user, home } = controller;
-
-  router.get('/test', home.index);
-
-  // api开头的为接口
+  const { user } = controller;
+  const apiRouter = router.namespace('/api'); // api开头的为接口
 
   // 退出登录
-  router.post('/api/logout', user.logout);
+  apiRouter.post('/logout', user.logout);
 
   // 登录
-  router.post('/api/login', app.passport.authenticate('local', { successRedirect: '/api/loginCallback', failureRedirect: '/api/loginCallback' }));
+  apiRouter.post('/login', app.passport.authenticate('local', { successRedirect: '/loginCallback', failureRedirect: '/loginCallback' }));
 
   // 登录回调
-  router.get('/api/loginCallback', user.loginCallback);
+  apiRouter.get('/loginCallback', user.loginCallback);
 
   // 注册请求
-  router.post('/api/register', user.register);
+  apiRouter.post('/register', user.register);
+
+  // 同步微信用户、组织架构
+  apiRouter.get('/syncWeChatUsers', user.syncWeChat);
 
   // 获取所有用户
-  router.get('/api/users', user.getAll);
+  apiRouter.get('/users', user.getAll);
 
   // 根据id查询用户
-  router.get('/api/users/:id', user.getById);
+  apiRouter.get('/users/:id', user.getById);
 
   // 更新用户
-  router.put('/api/users/:id', user.update);
+  apiRouter.put('/users/:id', user.update);
 
   // 删除用户
-  router.del('/api/users/:id', user.del);
+  apiRouter.del('/users/:id', user.del);
 
   // 修改密码
-  router.put('/api/usersPassword', user.updatePassword);
+  apiRouter.put('/usersPassword', user.updatePassword);
 
 
   // 所有页面请求 返回首页

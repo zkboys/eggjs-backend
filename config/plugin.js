@@ -30,8 +30,16 @@ module.exports = {
     enable: true,
     package: 'egg-cors',
   },
+
+  // 模板
   ejs: {
     enable: true,
     package: 'egg-view-ejs',
+  },
+
+  // 路由
+  routerPlus: {
+    enable: true,
+    package: 'egg-router-plus',
   },
 };
