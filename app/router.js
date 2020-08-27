@@ -17,7 +17,7 @@ module.exports = app => {
   apiRouter.post('/register', user.register);
 
   // 同步微信用户、组织架构
-  apiRouter.get('/syncWeChatUsers', user.syncWeChat);
+  apiRouter.post('/syncWeChatUsers', user.syncWeChat);
 
   // 获取所有用户
   apiRouter.get('/users', user.getAll);

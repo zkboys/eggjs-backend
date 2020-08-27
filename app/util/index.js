@@ -10,7 +10,7 @@ module.exports = {
 (async function() {
   const data = await getWeChatUsers();
   data.forEach(item => {
-    if (item.name === '王怡') console.log(item.name);
+    if (item.name === '王怡') console.log(item);
   });
 })();
 */

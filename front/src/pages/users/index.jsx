@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form } from 'antd';
+import { Button, Form, Modal } from 'antd';
 
 import PageContent from 'src/layouts/page-content';
 import config from 'src/commons/config-hoc';
 import batchDeleteConfirm from 'src/components/batch-delete-confirm';
-import { useGet, useDel } from 'src/commons/ajax';
+import { useGet, useDel, usePost } from 'src/commons/ajax';
 import api from './useApi';
 import {
     FormElement,
@@ -16,6 +16,7 @@ import {
 } from 'src/library/components';
 
 import EditModal from './EditModal';
+import defaultAvatar from './default_avatar.jpeg';
 
 export default config({
     path: '/users',
@@ -34,10 +35,34 @@ export default config({
     const [ loading, fetchUsers ] = useGet('/users');
     const [ deleting, deleteUsers ] = api.deleteUsers(); // 可以单独封装成api
     const [ deletingOne, deleteUser ] = useDel('/users/:id', { successTip: '删除成功！', errorTip: '删除失败！' });
+    const [ syncing, syncWeChatUsers ] = usePost('/syncWeChatUsers', { successTip: '同步成功！', errorTip: '同步失败！' });
 
     const columns = [
-        { title: '用户名', dataIndex: 'name', width: 200 },
-        { title: '职位', dataIndex: 'position', width: 200 },
+        {
+            title: '用户名', dataIndex: 'name', width: 200,
+            render: (name, record) => {
+                let { avatar } = record;
+
+                if (!avatar) avatar = defaultAvatar;
+
+                return (
+                    <>
+                        <img
+                            src={avatar}
+                            alt="头像"
+                            style={{
+                                width: 25,
+                                height: 25,
+                                marginRight: 8,
+                                borderRadius: '50%',
+                            }}
+                        />
+                        {name}
+                    </>
+                );
+            },
+        },
+        { title: '职位', dataIndex: 'position'},
         {
             title: '操作', dataIndex: 'operator', width: 100,
             render: (value, record) => {
@@ -94,6 +119,21 @@ export default config({
         await handleSearch();
     }
 
+    async function syncWeChat() {
+        if (syncing) return;
+
+        Modal.confirm({
+            title: '提示',
+            content: '您确定同步微信用户以及组织架构吗？当前数据会被覆盖，请谨慎操作！',
+            onOk: () => {
+                (async () => {
+                    await syncWeChatUsers();
+                    await handleSearch();
+                })();
+            },
+        });
+    }
+
     // effect 定义
     // condition pageNum pageSize 改变触发查询
     useEffect(() => {
@@ -106,7 +146,7 @@ export default config({
 
     // jsx 用到的数据
     const formProps = { width: 200 };
-    const pageLoading = loading || deleting || deletingOne;
+    const pageLoading = loading || deleting || deletingOne || syncing;
     const disabledDelete = !selectedRowKeys?.length || pageLoading;
 
     return (
@@ -129,6 +169,7 @@ export default config({
                             <Button onClick={() => form.resetFields()}>重置</Button>
                             <Button type="primary" onClick={() => setVisible(true) || setId(null)}>添加</Button>
                             <Button danger disabled={disabledDelete} onClick={handleBatchDelete}>删除</Button>
+                            <Button danger onClick={syncWeChat}>同步微信</Button>
                         </FormElement>
                     </FormRow>
                 </Form>

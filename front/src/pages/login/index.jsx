@@ -23,7 +23,7 @@ export default class extends Component {
     componentDidMount() {
         // 开发时方便测试，填写表单
         if (process.env.NODE_ENV === 'development' || window.location.origin === 'http://shubin.wang') {
-            this.form.setFieldsValue({ username: 'admin', password: '111' });
+            this.form.setFieldsValue({ username: 'admin', password: 'admin123' });
         }
 
         setTimeout(() => this.setState({ isMount: true }), 300);

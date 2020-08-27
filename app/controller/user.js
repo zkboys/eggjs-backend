@@ -31,7 +31,6 @@ module.exports = class UserController extends Controller {
     const verifyPassword = userService.comparePassword(password, user.password);
     if (!verifyPassword) return ctx.fail(errorMessage);
 
-
     const { secret, expire, cookieName } = ctx.app.config.jwt;
     const { redis } = ctx.app;
     // expiresIn 单位 秒
@@ -111,7 +110,7 @@ module.exports = class UserController extends Controller {
         [Op.and]: [ conditions ],
       },
       order: [
-        [ 'updatedAt', 'DESC' ],
+        [ 'jobNumber', 'ASC' ],
       ],
     };
 
@@ -156,6 +155,7 @@ module.exports = class UserController extends Controller {
     const { id } = ctx.params;
 
     const { User } = ctx.model;
+    const { user: userService } = ctx.service;
 
     const user = await User.findByPk(id);
     if (!user) return ctx.fail('用户不存在或已删除！');
@@ -168,7 +168,7 @@ module.exports = class UserController extends Controller {
 
     const userData = { username, email, permission };
     if (password) {
-      userData.password = User.encryptPassword(password);
+      userData.password = userService.encryptPassword(password);
     }
 
     const result = await user.update(userData);
@@ -222,6 +222,18 @@ module.exports = class UserController extends Controller {
   async syncWeChat(ctx) {
     const data = await getWeChatUsers();
     const { Department, User, DepartmentUser } = ctx.model;
+    const { user: userService } = ctx.service;
+
+    // 删除所有用户 以及 部门
+    await User.destroy({
+      where: {},
+    });
+    await Department.destroy({
+      where: {},
+    });
+    await DepartmentUser.destroy({
+      where: {},
+    });
 
     const users = [];
     const departs = [];
@@ -229,6 +241,7 @@ module.exports = class UserController extends Controller {
       const {
         type,
         name,
+        alias,
         id,
         parentId,
         order,
@@ -262,6 +275,7 @@ module.exports = class UserController extends Controller {
           is_leader_in_dept,
 
           name,
+          jobNumber: alias,
           username,
           password: '123456',
           mobile,
@@ -307,7 +321,7 @@ module.exports = class UserController extends Controller {
             order,
           });
         } else {
-          du.password = ctx.service.user.encryptPassword(du.password);
+          du.password = userService.encryptPassword(du.password);
           await department.createUser(du, {
             through: {
               isLeader,
@@ -317,6 +331,15 @@ module.exports = class UserController extends Controller {
         }
       }
     }
+
+    // 创建一个管理员
+    await User.create({
+      username: 'admin',
+      jobNumber: 'admin',
+      password: userService.encryptPassword('admin123'),
+      name: '管理员',
+    });
+
     ctx.success(true);
   }
 };
