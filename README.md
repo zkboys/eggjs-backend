@@ -66,6 +66,6 @@ $ npm run deploy
 - [数据库 sequelize](https://sequelize.org/)
 - [数据库 egg-sequelize](https://github.com/eggjs/egg-sequelize)
 - [路由 egg-router-plus](https://github.com/eggjs/egg-router-plus)
+- [校验 egg-validate](https://github.com/eggjs/egg-validate)
 
 [egg]: https://eggjs.org
-

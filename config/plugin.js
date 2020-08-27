@@ -15,16 +15,6 @@ module.exports = {
     package: 'egg-sequelize',
   },
 
-  // 鉴权
-  passport: {
-    enable: true,
-    package: 'egg-passport',
-  },
-  passportLocal: {
-    enable: true,
-    package: 'egg-passport-local',
-  },
-
   // 跨域
   cors: {
     enable: true,

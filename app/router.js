@@ -5,12 +5,11 @@ module.exports = app => {
   const { user } = controller;
   const apiRouter = router.namespace('/api'); // api开头的为接口
 
+  // 登录
+  apiRouter.post('/login', user.login);
+
   // 退出登录
   apiRouter.post('/logout', user.logout);
-
-  // 登录
-  apiRouter.post('/login', app.passport.authenticate('local', { successRedirect: '/loginCallback', failureRedirect: '/loginCallback' }));
-
   // 登录回调
   apiRouter.get('/loginCallback', user.loginCallback);
 

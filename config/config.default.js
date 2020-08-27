@@ -27,13 +27,6 @@ module.exports = appInfo => {
     // myAppName: 'egg',
   };
 
-  exports.session = {
-    key: 'SESSION_ID',
-    maxAge: 24 * 3600 * 1000, // 1 天
-    httpOnly: true,
-    encrypt: true,
-  };
-
   // 静态文件
   exports.static = {
     prefix: '/public/',
@@ -75,11 +68,21 @@ module.exports = appInfo => {
     dir: path.join(appInfo.baseDir, 'logs'),
   };
 
-  // 登录 请求中字段配置
-  exports.passportLocal = {
-    usernameField: 'username',
-    passwordField: 'password',
+  // jwt
+  exports.jwt = {
+    cookieName: 'SESSION_ID',
+    tokenName: 'token',
+    // 最小单位 秒
+    expire: 60 * 60 * 24 * 7, // 七天
+    // expire: 3, // 秒
+    secret: 'asdfadfadsaqwetasdf',
   };
+
+  // 不需要登录的api 地址
+  exports.noAuthApis = [
+    '/api/login',
+    '/api/register',
+  ];
 
   return {
     ...exports,

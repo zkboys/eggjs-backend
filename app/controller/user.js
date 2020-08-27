@@ -1,6 +1,7 @@
 'use strict';
 const { Op } = require('sequelize');
 const Controller = require('egg').Controller;
+const jwt = require('jsonwebtoken');
 const { getWeChatUsers } = require('../util/index');
 
 module.exports = class UserController extends Controller {
@@ -11,10 +12,57 @@ module.exports = class UserController extends Controller {
     return ctx.fail('用户名或密码错误！');
   }
 
+  // 登录
+  async login(ctx) {
+    ctx.validate({
+      username: 'string',
+      password: 'string',
+    }, ctx.request.body);
+
+    const { User } = ctx.model;
+    const { user: userService } = ctx.service;
+    const errorMessage = '用户名或密码错误';
+
+    const { username, password } = ctx.request.body;
+
+    const user = await User.findOne({ where: { username } });
+    if (!user) return ctx.fail(errorMessage);
+
+    const verifyPassword = userService.comparePassword(password, user.password);
+    if (!verifyPassword) return ctx.fail(errorMessage);
+
+
+    const { secret, expire, cookieName } = ctx.app.config.jwt;
+    const { redis } = ctx.app;
+    // expiresIn 单位 秒
+    const token = jwt.sign({ id: user.id }, secret, { expiresIn: expire });
+    user.token = token;
+
+    ctx.cookies.set(cookieName, token,
+      {
+        maxAge: expire * 1000, // cookie有效时长 单位 毫秒s
+        httpOnly: true, // 是否只用于http请求中获取
+        overwrite: false, // 是否允许重写
+      });
+
+    // 存储到redis，退出登录会用到
+    await redis.set(token, token);
+
+    return ctx.success(userService.safeUser(user));
+  }
+
   // 退出登录接口
   async logout(ctx) {
-    ctx.logout();
-    ctx.success(true);
+    const { redis } = ctx.app;
+    const { cookieName } = ctx.app.config.jwt;
+
+    const token = ctx.userToken;
+
+    await redis.del(token);
+
+    ctx.cookies.set(cookieName, null);
+
+    ctx.success();
   }
 
   // 用户注册
@@ -172,7 +220,6 @@ module.exports = class UserController extends Controller {
 
   // 同步微信用户
   async syncWeChat(ctx) {
-
     const data = await getWeChatUsers();
     const { Department, User, DepartmentUser } = ctx.model;
 

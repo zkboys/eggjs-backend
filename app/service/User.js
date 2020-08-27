@@ -2,6 +2,7 @@
 
 const bcrypt = require('bcryptjs');
 const { Service } = require('egg');
+const _ = require('lodash');
 
 /**
  * Test Service
@@ -26,5 +27,9 @@ module.exports = class UserService extends Service {
    */
   encryptPassword(password) {
     return bcrypt.hashSync(password, 8);
+  }
+
+  safeUser(user) {
+    return _.omit(user.toJSON(), [ 'password' ]);
   }
 };
