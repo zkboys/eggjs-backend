@@ -26,7 +26,7 @@ module.exports = app => {
   apiRouter.get('/users/:id', user.getById);
 
   // 更新用户
-  apiRouter.put('/users/:id', user.update);
+  apiRouter.put('/users', user.update);
 
   // 删除用户
   apiRouter.del('/users/:id', user.del);

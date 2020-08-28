@@ -1,26 +1,25 @@
-import React, {useState, useEffect} from 'react';
-import {Form} from 'antd';
-import {FormElement} from 'src/library/components';
+import React, { useState, useEffect } from 'react';
+import { Form } from 'antd';
+import { FormElement } from 'src/library/components';
 import config from 'src/commons/config-hoc';
-import {ModalContent} from 'src/library/components';
-import {useGet, usePost, usePut} from 'src/commons/ajax';
+import { ModalContent } from 'src/library/components';
+import { useGet, usePost, usePut } from 'src/commons/ajax';
 
 export default config({
     modal: props => props.isEdit ? '修改用户' : '添加用户',
 })(props => {
-    const [data, setData] = useState({});
-    const {isEdit, id, onOk} = props;
-    const [form] = Form.useForm();
-    const [loading, fetchUser] = useGet('/mock/users/:id');
-    const [saving, saveUser] = usePost('/mock/users', {successTip: '添加成功！'});
-    const [updating, updateUser] = usePut('/mock/users', {successTip: '添加成功！'});
+    const [ data, setData ] = useState({});
+    const { isEdit, id, onOk } = props;
+    const [ form ] = Form.useForm();
+    const [ loading, fetchUser ] = useGet('/users/:id');
+    const [ saving, saveUser ] = usePost('/register', { successTip: '添加成功！' });
+    const [ updating, updateUser ] = usePut('/users', { successTip: '修改成功！' });
 
     async function fetchData() {
         if (loading) return;
-        console.log(id);
-
         const res = await fetchUser(id);
 
+        if (isEdit) res.password = undefined;
         setData(res || {});
         form.setFieldsValue(res || {});
     }
@@ -59,50 +58,28 @@ export default config({
 
                 <FormElement
                     {...formProps}
-                    label="用户名"
-                    name="name"
+                    label="账号"
+                    name="account"
                     required
                     noSpace
                 />
                 <FormElement
                     {...formProps}
-                    type="number"
-                    label="年龄"
-                    name="age"
+                    label="姓名"
+                    name="name"
                     required
                 />
                 <FormElement
                     {...formProps}
-                    type="select"
-                    label="工作"
-                    name="job"
-                    options={[
-                        {value: '1', label: '前端开发'},
-                        {value: '2', label: '后端开发'},
-                    ]}
+                    type="password"
+                    label="密码"
+                    name="password"
                 />
                 <FormElement
                     {...formProps}
-                    type="select"
-                    label="职位"
-                    name="position"
-                    options={[
-                        {value: '1', label: '员工'},
-                        {value: '2', label: 'CEO'},
-                    ]}
-                />
-                <FormElement
-                    {...formProps}
-                    type="select"
-                    mode="multiple"
-                    showSearch
-                    optionFilterProp='children'
-                    label="角色"
-                    name="role"
-                    options={[
-                        {value: '1', label: '员工'},
-                        {value: '2', label: 'CEO'},
-                    ]}
+                    label="邮箱"
+                    name="email"
+                    email
                 />
             </Form>
         </ModalContent>

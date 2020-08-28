@@ -11,7 +11,7 @@ module.exports = app => {
       unique: true,
       defaultValue: UUIDV4,
     },
-    username: STRING(20),
+    account: STRING(20),
     jobNumber: STRING(20),
     password: STRING(100),
     name: STRING(20),

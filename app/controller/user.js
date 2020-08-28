@@ -15,7 +15,7 @@ module.exports = class UserController extends Controller {
   // 登录
   async login(ctx) {
     ctx.validate({
-      username: 'string',
+      account: 'string',
       password: 'string',
     }, ctx.request.body);
 
@@ -23,9 +23,9 @@ module.exports = class UserController extends Controller {
     const { user: userService } = ctx.service;
     const errorMessage = '用户名或密码错误';
 
-    const { username, password } = ctx.request.body;
+    const { account, password } = ctx.request.body;
 
-    const user = await User.findOne({ where: { username } });
+    const user = await User.findOne({ where: { account } });
     if (!user) return ctx.fail(errorMessage);
 
     const verifyPassword = userService.comparePassword(password, user.password);
@@ -71,18 +71,19 @@ module.exports = class UserController extends Controller {
     const userService = ctx.service.user;
 
     ctx.validate({
-      username: 'string',
+      account: 'string',
+      name: 'string',
       password: 'string',
     }, requestBody);
 
-    const { password, username } = requestBody;
+    const { password, account } = requestBody;
 
-    const foundUser = await User.findOne({ where: { username } });
+    const foundUser = await User.findOne({ where: { account } });
     if (foundUser) return ctx.fail('此用户名已存在');
 
     const ePassword = userService.encryptPassword(password);
 
-    const savedUser = await User.create({ username, password: ePassword });
+    const savedUser = await User.create({ ...requestBody, password: ePassword });
 
     return ctx.success(savedUser);
   }
@@ -136,23 +137,16 @@ module.exports = class UserController extends Controller {
 
   // 更新用户
   async update(ctx) {
-    const currentUser = ctx.user;
-
-    if (currentUser.permission !== 'admin') return ctx.fail('您无权进行此操作！');
+    const requestBody = ctx.request.body;
 
     ctx.validate({
       id: 'string',
-    }, ctx.params);
-    ctx.validate({
-      username: 'string',
+      account: 'string',
       password: 'string?',
       email: 'string',
-      permission: 'string?',
-    }, ctx.request.body);
+    }, requestBody);
 
-    const { username, password, email, permission } = ctx.request.body;
-
-    const { id } = ctx.params;
+    const { id, account, password, email } = requestBody;
 
     const { User } = ctx.model;
     const { user: userService } = ctx.service;
@@ -160,13 +154,13 @@ module.exports = class UserController extends Controller {
     const user = await User.findByPk(id);
     if (!user) return ctx.fail('用户不存在或已删除！');
 
-    const exitName = await User.findOne({ where: { username } });
-    if (exitName && exitName.id !== +id) return ctx.fail('此用户名已被占用！');
+    const exitName = await User.findOne({ where: { account } });
+    if (exitName && exitName.id !== id) return ctx.fail('此用户名已被占用！');
 
     const exitEmail = await User.findOne({ where: { email } });
-    if (exitEmail && exitEmail.id !== +id) return ctx.fail('此邮箱已被占用！');
+    if (exitEmail && exitEmail.id !== id) return ctx.fail('此邮箱已被占用！');
 
-    const userData = { username, email, permission };
+    const userData = { ...requestBody };
     if (password) {
       userData.password = userService.encryptPassword(password);
     }
@@ -178,18 +172,12 @@ module.exports = class UserController extends Controller {
 
   // 删除用户
   async del(ctx) {
-    const currentUser = ctx.user;
-
-    if (currentUser.permission !== 'admin') return ctx.fail('您无权进行此操作！');
-
     ctx.validate({
       id: 'string',
     }, ctx.params);
 
     const { id } = ctx.params;
-
     const { User } = ctx.model;
-
     const result = await User.destroy({ where: { id } });
 
     ctx.success(result);
@@ -257,7 +245,7 @@ module.exports = class UserController extends Controller {
         qr_code,
       } = item;
 
-      const username = email ? email.replace('@suixingpay.com', '') : '';
+      const account = email ? email.replace('@suixingpay.com', '') : '';
 
       if (type === 'depart') {
         departs.push({
@@ -276,7 +264,7 @@ module.exports = class UserController extends Controller {
 
           name,
           jobNumber: alias,
-          username,
+          account,
           password: '123456',
           mobile,
           gender,
@@ -334,7 +322,7 @@ module.exports = class UserController extends Controller {
 
     // 创建一个管理员
     await User.create({
-      username: 'admin',
+      account: 'admin',
       jobNumber: 'admin',
       password: userService.encryptPassword('admin123'),
       name: '管理员',

@@ -23,7 +23,7 @@ export default class extends Component {
     componentDidMount() {
         // 开发时方便测试，填写表单
         if (process.env.NODE_ENV === 'development' || window.location.origin === 'http://shubin.wang') {
-            this.form.setFieldsValue({ username: 'admin', password: 'admin123' });
+            this.form.setFieldsValue({ account: 'admin', password: 'admin123' });
         }
 
         setTimeout(() => this.setState({ isMount: true }), 300);
@@ -32,9 +32,9 @@ export default class extends Component {
     handleSubmit = (values) => {
         if (this.state.loading) return;
 
-        const { username, password } = values;
+        const { account, password } = values;
         const params = {
-            username,
+            account,
             password,
         };
 
@@ -75,8 +75,8 @@ export default class extends Component {
                             </div>
                             <div styleName={formItemStyleName}>
                                 <Form.Item
-                                    name="username"
-                                    rules={[ { required: true, message: '请输入用户名' } ]}
+                                    name="account"
+                                    rules={[ { required: true, message: '请输入账号' } ]}
                                 >
                                     <Input allowClear autoFocus prefix={<UserOutlined className="site-form-item-icon"/>} placeholder="用户名"/>
                                 </Form.Item>
