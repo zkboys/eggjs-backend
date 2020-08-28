@@ -1,9 +1,5 @@
-import {notification} from 'antd';
+import { message } from 'antd';
 
-export default function handleSuccess({successTip}) {
-    successTip && notification.success({
-        message: '成功',
-        description: successTip,
-        duration: 2,
-    })
+export default function handleSuccess({ successTip }) {
+    successTip && message.success(successTip);
 }

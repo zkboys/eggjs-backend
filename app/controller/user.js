@@ -216,15 +216,20 @@ module.exports = class UserController extends Controller {
   // 同步微信用户
   async syncWeChat(ctx) {
     const data = await getWeChatUsers();
-    const { Department, User, DepartmentUser } = ctx.model;
+    const { Department, User, DepartmentUser, Role, RoleUser } = ctx.model;
     const { user: userService } = ctx.service;
 
     // 删除所有用户 以及 部门
-    const admin = await User.findOne({ where: { account: 'admin' } });
-    const adminId = admin ? admin.id : undefined;
+    // const admin = await User.findOne({ where: { account: 'admin' } });
+    // const adminId = admin ? admin.id : undefined;
+
 
     await User.destroy({
-      where: {},
+      where: {
+        account: {
+          [Op.not]: 'admin',
+        },
+      },
     });
     await Department.destroy({
       where: {},
@@ -301,7 +306,6 @@ module.exports = class UserController extends Controller {
       // 创建组织架构
       const department = await Department.create(d);
 
-
       // 创建组织架构对应的用户
       for (const du of dus) {
         const index = du.department.indexOf(dId);
@@ -326,18 +330,25 @@ module.exports = class UserController extends Controller {
               order,
             },
           });
+
+          // 关联角色
+          const role = await Role.findOne({ where: { name: '游客' } });
+          if (role) {
+            const { id: roleId } = role;
+            await RoleUser.create({ userId: du.id, roleId });
+          }
         }
       }
     }
 
     // 创建一个管理员
-    await User.create({
-      id: adminId,
-      account: 'admin',
-      jobNumber: 'admin',
-      password: userService.encryptPassword('123456'),
-      name: '管理员',
-    });
+    // await User.create({
+    //   id: adminId,
+    //   account: 'admin',
+    //   jobNumber: 'admin',
+    //   password: userService.encryptPassword('123456'),
+    //   name: '管理员',
+    // });
 
     ctx.success(true);
   }
