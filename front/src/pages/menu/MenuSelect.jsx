@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Icon } from 'src/library/components';
 import config from 'src/commons/config-hoc';
-import { convertToTree } from 'src/library/utils/tree-utils';
+import { convertToTree, getGenerationKeys } from 'src/library/utils/tree-utils';
 import { Table } from 'src/library/components';
 import './style.less';
 
@@ -18,6 +18,7 @@ export default class index extends Component {
     state = {
         loading: false,
         menus: [],
+        allMenuKeys: [],
         expandedRowKeys: [],
     };
 
@@ -55,6 +56,7 @@ export default class index extends Component {
             .get('/menus')
             .then(res => {
                 const menus = res.map(item => ({ key: item.id, parentKey: item.parentId, ...item }));
+                const allMenuKeys = menus.map(item => item.key);
                 // 菜单根据order 排序
                 const orderedData = [ ...menus ].sort((a, b) => {
                     const aOrder = a.order || 0;
@@ -72,11 +74,67 @@ export default class index extends Component {
 
                 // 默认展开全部
                 const expandedRowKeys = menus.map(item => item.key);
-                this.setState({ menus: menuTreeData, expandedRowKeys });
+                this.setState({ menus: menuTreeData, allMenuKeys, expandedRowKeys });
             })
             .finally(() => this.setState({ loading: false }));
 
     }
+
+
+    handleSelect = (record, selected, selectedRows, nativeEvent) => {
+        const { value = [] } = this.props;
+        const { menus } = this.state;
+
+        const { key } = record;
+
+        let allKeys = [ ...value ];
+
+        // 全选 取消 子级
+        const childrenKeys = getGenerationKeys(menus, key);
+        const { parentKeys = [] } = record;
+        if (selected) {
+            // 子级全部加入
+            allKeys = allKeys.concat(key, ...childrenKeys);
+
+            // 父级状态 全部加入
+            allKeys = allKeys.concat(...parentKeys);
+        } else {
+            // 子级全部删除
+            allKeys = allKeys.filter(item => !(([ key, ...childrenKeys ]).includes(item)));
+
+            // 判断父级状态 只要有后代选中就加入
+            parentKeys.reverse().forEach(pk => {
+                const cKs = getGenerationKeys(menus, pk);
+                const hasChildSelected = cKs.some(ck => allKeys.includes(ck));
+
+                if (hasChildSelected) {
+                    allKeys.push(pk);
+                } else {
+                    allKeys = allKeys.filter(item => item !== pk);
+                }
+            });
+        }
+
+        const { onChange } = this.props;
+
+        onChange && onChange(Array.from(new Set(allKeys)));
+    };
+
+    handleSelectAll = (selected) => {
+        const { allMenuKeys } = this.state;
+        const { onChange } = this.props;
+
+        onChange && onChange(selected ? allMenuKeys : []);
+    };
+
+    indeterminate = (record) => {
+        const { value } = this.props;
+        const { menus } = this.state;
+        const { key } = record;
+        // 如果 部分子级被选中，就是半选
+        const childrenKeys = getGenerationKeys(menus, key);
+        return value.includes(key) && value.some(k => childrenKeys.includes(k)) && !childrenKeys.every(k => value.includes(k));
+    };
 
     render() {
         const {
@@ -95,10 +153,11 @@ export default class index extends Component {
                 }}
                 rowSelection={{
                     selectedRowKeys: value,
-                    onChange,
+                    onSelect: this.handleSelect,
+                    onSelectAll: this.handleSelectAll,
                     getCheckboxProps: record => {
-                        console.log(record);
-                        return {};
+                        const indeterminate = this.indeterminate(record);
+                        return { indeterminate };
                     },
                 }}
                 loading={loading}
