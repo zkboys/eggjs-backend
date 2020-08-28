@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
-import {Form} from 'antd';
-import {FormElement, FormRow, IconPicker, ModalContent} from 'src/library/components';
+import React, { Component } from 'react';
+import { Form } from 'antd';
+import { FormElement, FormRow, IconPicker, ModalContent } from 'src/library/components';
 import config from 'src/commons/config-hoc';
 
 @config({
@@ -8,8 +8,8 @@ import config from 'src/commons/config-hoc';
     modal: {
         width: 700,
         title: props => {
-            const {data = {}} = props;
-            const {key, type} = data;
+            const { data = {} } = props;
+            const { key, type } = data;
             const isMenu = type === '1';
 
             if (isMenu) return key ? '编辑菜单' : '添加菜单';
@@ -30,29 +30,29 @@ export default class EditModal extends Component {
         console.log('Received values of form: ', values);
 
         // 如果key存在视为修改，其他为添加
-        const {key} = values;
-        const ajax = key ? this.props.ajax.put : this.props.ajax.post;
-        const {onOk} = this.props;
+        const { key, parentKey } = values;
+        const ajaxMethod = key ? this.props.ajax.put : this.props.ajax.post;
+        const ajaxUrl = key ? `/menus/${key}` : '/menus';
+        const { onOk } = this.props;
 
-        // TODO
-        this.setState({loading: true});
-        ajax('/menus', values)
+        this.setState({ loading: true });
+        ajaxMethod(ajaxUrl, { ...values, id: key, parentId: parentKey })
             .then(() => {
-                this.setState({visible: false});
+                this.setState({ visible: false });
                 onOk && onOk();
             })
-            .finally(() => this.setState({loading: false}));
+            .finally(() => this.setState({ loading: false }));
     };
 
     handleCancel = () => {
-        const {onCancel} = this.props;
+        const { onCancel } = this.props;
         if (onCancel) onCancel();
     };
 
     render() {
-        const {data} = this.props;
-        const {loading} = this.state;
-        const {type} = data;
+        const { data } = this.props;
+        const { loading } = this.state;
+        const { type, icon = 'bars' } = data;
         const isMenu = type === '1';
 
         const formProps = {
@@ -70,8 +70,8 @@ export default class EditModal extends Component {
                 <Form
                     ref={form => this.form = form}
                     onFinish={this.handleSubmit}
-                    style={{padding: 16}}
-                    initialValues={data}
+                    style={{ padding: 16 }}
+                    initialValues={{ ...data, icon }}
                 >
                     <FormElement {...formProps} type="hidden" name="key"/>
                     <FormElement {...formProps} type="hidden" name="parentKey"/>
@@ -82,6 +82,7 @@ export default class EditModal extends Component {
                             label="名称"
                             name="text"
                             required
+                            autoFocus
                         />
                         {isMenu ? (
                             <FormElement
@@ -119,26 +120,26 @@ export default class EditModal extends Component {
                             />
                         ) : null}
                     </FormRow>
-                    {isMenu ? (
-                        <FormRow>
-                            <FormElement
-                                {...formProps}
-                                label="url"
-                                name="url"
-                            />
-                            <FormElement
-                                {...formProps}
-                                type="select"
-                                label="target"
-                                name="target"
-                                options={[
-                                    {value: '', label: '项目内部窗口'},
-                                    {value: '_self', label: '替换当前窗口'},
-                                    {value: '_blank', label: '打开新窗口'},
-                                ]}
-                            />
-                        </FormRow>
-                    ) : null}
+                    {/*{isMenu ? (*/}
+                    {/*    <FormRow>*/}
+                    {/*        <FormElement*/}
+                    {/*            {...formProps}*/}
+                    {/*            label="url"*/}
+                    {/*            name="url"*/}
+                    {/*        />*/}
+                    {/*        <FormElement*/}
+                    {/*            {...formProps}*/}
+                    {/*            type="select"*/}
+                    {/*            label="target"*/}
+                    {/*            name="target"*/}
+                    {/*            options={[*/}
+                    {/*                { value: '', label: '项目内部窗口' },*/}
+                    {/*                { value: '_self', label: '替换当前窗口' },*/}
+                    {/*                { value: '_blank', label: '打开新窗口' },*/}
+                    {/*            ]}*/}
+                    {/*        />*/}
+                    {/*    </FormRow>*/}
+                    {/*) : null}*/}
                 </Form>
             </ModalContent>
         );

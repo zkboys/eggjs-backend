@@ -27,6 +27,12 @@ module.exports = app => {
     app.model.Role.belongsToMany(app.model.Permission, {
       through: app.model.RolePermission,
     });
+
+    // 与Menu表是多对多关系
+    app.model.Role.belongsToMany(app.model.Menu, {
+      through: app.model.RoleMenu,
+    });
+
   };
 
   return Role;

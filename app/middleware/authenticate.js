@@ -58,6 +58,8 @@ module.exports = () => {
 
       const user = await User.findByPk(id);
 
+      if (!user) throw Error('用户不存在');
+
       // ctx.user 为只读属性，防止业务代码串改
       Object.defineProperty(ctx, 'user', {
         writable: false,

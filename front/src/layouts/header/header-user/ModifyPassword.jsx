@@ -23,7 +23,7 @@ export default class ModifyPassword extends Component {
         const { onOk } = this.props;
 
         this.setState({ loading: true });
-        this.props.ajax.put('/usersPassword', values)
+        this.props.ajax.put('/updatePassword', values)
             .then(() => {
                 if (onOk) onOk();
             })

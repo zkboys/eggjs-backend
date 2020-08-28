@@ -5,13 +5,6 @@ const jwt = require('jsonwebtoken');
 const { getWeChatUsers } = require('../util/index');
 
 module.exports = class UserController extends Controller {
-  // 登录验证回调
-  async loginCallback(ctx) {
-    if (ctx.isAuthenticated()) return ctx.success(ctx.user);
-
-    return ctx.fail('用户名或密码错误！');
-  }
-
   // 登录
   async login(ctx) {
     ctx.validate({
@@ -65,7 +58,7 @@ module.exports = class UserController extends Controller {
   }
 
   // 用户注册
-  async register(ctx) {
+  async create(ctx) {
     const requestBody = ctx.request.body;
     const User = ctx.model.User;
     const userService = ctx.service.user;
@@ -89,26 +82,24 @@ module.exports = class UserController extends Controller {
   }
 
   // 获取所有用户
-  async getAll(ctx) {
-    const { pageNum = 1, pageSize = 10, name, position } = ctx.query;
+  async index(ctx) {
+    const { pageNum = 1, pageSize = 10, name, roleId } = ctx.query;
 
     const { User, Role, Permission } = ctx.model;
-
-    const conditions = [];
-
-    if (name) conditions.push({ name: { [Op.like]: `%${name.trim()}%` } });
-
-    if (position) conditions.push({ position: { [Op.like]: `%${position.trim()}%` } });
 
     const options = {
       offset: (pageNum - 1) * pageSize,
       limit: +pageSize,
       include: {
         model: Role,
+        where: roleId ? { id: roleId } : undefined,
+        left: true,
         include: Permission,
       },
       where: {
-        [Op.and]: [ conditions ],
+        [Op.and]: [
+          name ? { name: { [Op.like]: `%${name.trim()}%` } } : undefined,
+        ],
       },
       order: [
         [ 'jobNumber', 'ASC' ],
@@ -117,11 +108,24 @@ module.exports = class UserController extends Controller {
 
     const { count, rows } = await User.findAndCountAll(options);
 
-    ctx.success({ rows, count });
+
+    // 查询用户的完整的角色列表
+    let result = rows;
+    if (roleId) {
+      result = [];
+      for (const user of rows) {
+        const roles = await user.getRoles();
+        const userJson = user.toJSON();
+
+        result.push({ ...userJson, roles });
+      }
+    }
+
+    ctx.success({ rows: result, count });
   }
 
   // 获取用户详情
-  async getById(ctx) {
+  async show(ctx) {
     ctx.validate({
       id: 'string',
     }, ctx.params);
@@ -138,15 +142,18 @@ module.exports = class UserController extends Controller {
   // 更新用户
   async update(ctx) {
     const requestBody = ctx.request.body;
-
     ctx.validate({
       id: 'string',
+    }, ctx.params);
+
+    ctx.validate({
       account: 'string',
       password: 'string?',
       email: 'string',
     }, requestBody);
 
-    const { id, account, password, email } = requestBody;
+    const { id } = ctx.params;
+    const { account, password, email } = requestBody;
 
     const { User } = ctx.model;
     const { user: userService } = ctx.service;
@@ -171,7 +178,7 @@ module.exports = class UserController extends Controller {
   }
 
   // 删除用户
-  async del(ctx) {
+  async destroy(ctx) {
     ctx.validate({
       id: 'string',
     }, ctx.params);
@@ -213,6 +220,9 @@ module.exports = class UserController extends Controller {
     const { user: userService } = ctx.service;
 
     // 删除所有用户 以及 部门
+    const admin = await User.findOne({ where: { account: 'admin' } });
+    const adminId = admin ? admin.id : undefined;
+
     await User.destroy({
       where: {},
     });
@@ -322,12 +332,69 @@ module.exports = class UserController extends Controller {
 
     // 创建一个管理员
     await User.create({
+      id: adminId,
       account: 'admin',
       jobNumber: 'admin',
-      password: userService.encryptPassword('admin123'),
+      password: userService.encryptPassword('123456'),
       name: '管理员',
     });
 
     ctx.success(true);
+  }
+
+  // 关联角色
+  async relateUserRoles(ctx) {
+    const reqBody = ctx.request.body;
+    ctx.validate({
+      userId: 'string',
+      roleIds: 'array',
+    }, reqBody);
+
+    const { userId, roleIds } = reqBody;
+
+    const { RoleUser } = ctx.model;
+
+    // 多次数据库操作，进行事务处理
+    let transaction;
+    try {
+      transaction = await ctx.model.transaction();
+
+      // 删除原有关联
+      await RoleUser.destroy({ where: { userId }, transaction });
+
+      // 插入新的关联
+      const userRoles = roleIds.map(roleId => ({ userId, roleId }));
+      await RoleUser.bulkCreate(userRoles, { transaction });
+
+      await transaction.commit();
+
+      ctx.success();
+    } catch (e) {
+      if (transaction) await transaction.rollback();
+
+      throw e;
+    }
+  }
+
+  // 获取当前登录用户菜单
+  async sessionUserMenus(ctx) {
+    const user = ctx.user;
+
+    // 获取所有角色
+    const roles = await user.getRoles();
+    const menus = [];
+
+    for (const role of roles) {
+
+      // 获取所有角色对应的菜单
+      const ms = await role.getMenus();
+      ms.forEach(item => {
+        if (!menus.find(it => it.id === item.id)) {
+          menus.push(item);
+        }
+      });
+    }
+
+    ctx.success(menus);
   }
 };

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Modal } from 'antd';
+import { Button, Form, Modal, Select } from 'antd';
 
 import PageContent from 'src/layouts/page-content';
 import config from 'src/commons/config-hoc';
 import batchDeleteConfirm from 'src/components/batch-delete-confirm';
-import { useGet, useDel, usePost } from 'src/commons/ajax';
+import { useGet, useDel, usePost, usePut } from 'src/commons/ajax';
 import api from './useApi';
 import {
     FormElement,
@@ -29,13 +29,32 @@ export default config({
     const [ total, setTotal ] = useState(0);
     const [ visible, setVisible ] = useState(false);
     const [ id, setId ] = useState(null);
+    const [ roleOptions, setRoleOptions ] = useState([]);
     const [ form ] = Form.useForm();
 
     // 请求相关定义 只是定义，不会触发请求，调用相关函数，才会触发请求
     const [ loading, fetchUsers ] = useGet('/users');
     const [ deleting, deleteUsers ] = api.deleteUsers(); // 可以单独封装成api
     const [ deletingOne, deleteUser ] = useDel('/users/:id', { successTip: '删除成功！', errorTip: '删除失败！' });
-    const [ syncing, syncWeChatUsers ] = usePost('/syncWeChatUsers', { successTip: '同步成功！', errorTip: '同步失败！' });
+    const [ syncing, syncWeChatUsers ] = usePost('/syncWeChat', { successTip: '同步成功！', errorTip: '同步失败！' });
+    const [ fetchRolesLoading, fetchRoles ] = useGet('/roles');
+    const [ , relateRole ] = usePut('/relateUserRoles');
+
+    const handleRolesChange = async (roleIds, record) => {
+        const userId = record.id;
+
+        await relateRole({ userId, roleIds });
+
+        const roles = roleIds.map(id => {
+            const name = roleOptions.find(item => item.value === id)?.label;
+            return { id, name };
+        });
+
+        const data = dataSource.find(item => item.id === record.id);
+        if (data) data.roles = roles;
+
+        setDataSource([ ...dataSource ]);
+    };
 
     const columns = [
         {
@@ -62,7 +81,26 @@ export default config({
                 );
             },
         },
-        { title: '职位', dataIndex: 'position'},
+        {
+            title: '角色', dataIndex: 'roles', width: 400,
+            render: (value, recode) => {
+                const roleIds = value.map(item => item.id);
+                return (
+                    <Select
+                        style={{ width: '100%' }}
+                        mode="multiple"
+                        allowClear
+                        showSearch
+                        optionFilterProp="children"
+                        value={roleIds}
+                        onChange={(ids) => handleRolesChange(ids, recode)}
+                        options={roleOptions}
+                        placeholder="请选择角色"
+                    />
+                );
+            },
+        },
+        { title: '职位', dataIndex: 'position' },
         {
             title: '操作', dataIndex: 'operator', width: 100,
             render: (value, record) => {
@@ -134,19 +172,38 @@ export default config({
         });
     }
 
-    // effect 定义
+    // 查询条件 角色改变 触发查询
+    const handleRoleChange = async () => {
+        const condition = await form.validateFields();
+        setCondition({ condition, pageSize, pageNum: 1 });
+    };
+
     // condition pageNum pageSize 改变触发查询
     useEffect(() => {
-        handleSearch();
+        (async () => {
+            await handleSearch();
+        })();
     }, [
         condition,
         pageNum,
         pageSize,
     ]);
 
+    useEffect(() => {
+        (async () => {
+            const roles = await fetchRoles();
+            const roleOptions = roles.map(item => ({ value: item.id, label: item.name }));
+            setRoleOptions(roleOptions);
+        })();
+    }, []);
+
     // jsx 用到的数据
     const formProps = { width: 200 };
-    const pageLoading = loading || deleting || deletingOne || syncing;
+    const pageLoading = loading
+        || deleting
+        || deletingOne
+        || syncing
+        || fetchRolesLoading;
     const disabledDelete = !selectedRowKeys?.length || pageLoading;
 
     return (
@@ -161,11 +218,15 @@ export default config({
                         />
                         <FormElement
                             {...formProps}
-                            label="职位"
-                            name="position"
+                            allowClear
+                            type="select"
+                            label="角色"
+                            name="roleId"
+                            options={roleOptions}
+                            onChange={handleRoleChange}
                         />
                         <FormElement layout>
-                            <Button type="primary" htmlType="submit">提交</Button>
+                            <Button type="primary" htmlType="submit">查询</Button>
                             <Button onClick={() => form.resetFields()}>重置</Button>
                             <Button type="primary" onClick={() => setVisible(true) || setId(null)}>添加</Button>
                             <Button danger disabled={disabledDelete} onClick={handleBatchDelete}>删除</Button>

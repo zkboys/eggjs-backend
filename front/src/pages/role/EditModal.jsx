@@ -1,8 +1,8 @@
-import React, {Component} from 'react';
-import {Form} from 'antd';
-import {FormElement} from 'src/library/components';
+import React, { Component } from 'react';
+import { Form } from 'antd';
+import { FormElement } from 'src/library/components';
 import config from 'src/commons/config-hoc';
-import {ModalContent} from 'src/library/components';
+import { ModalContent } from 'src/library/components';
 
 @config({
     ajax: true,
@@ -17,7 +17,7 @@ export default class EditModal extends Component {
     };
 
     componentDidMount() {
-        const {isEdit} = this.props;
+        const { isEdit } = this.props;
 
         if (isEdit) {
             this.fetchData();
@@ -27,37 +27,37 @@ export default class EditModal extends Component {
     fetchData = () => {
         if (this.state.loading) return;
 
-        const {id} = this.props;
+        const { id } = this.props;
 
-        this.setState({loading: true});
-        this.props.ajax.get(`/mock/roles/${id}`)
+        this.setState({ loading: true });
+        this.props.ajax.get(`/roles/${id}`)
             .then(res => {
-                this.setState({data: res || {}});
+                this.setState({ data: res || {} });
                 this.form.setFieldsValue(res);
             })
-            .finally(() => this.setState({loading: false}));
+            .finally(() => this.setState({ loading: false }));
     };
 
     handleSubmit = (values) => {
         if (this.state.loading) return;
 
-        const {isEdit} = this.props;
+        const { isEdit } = this.props;
         const successTip = isEdit ? '修改成功！' : '添加成功！';
         const ajaxMethod = isEdit ? this.props.ajax.put : this.props.ajax.post;
-        const ajaxUrl = isEdit ? '/role' : '/role';
+        const ajaxUrl = isEdit ? `/roles/${values.id}` : '/roles';
 
-        this.setState({loading: true});
-        ajaxMethod(ajaxUrl, values, {successTip})
+        this.setState({ loading: true });
+        ajaxMethod(ajaxUrl, values, { successTip })
             .then(() => {
-                const {onOk} = this.props;
+                const { onOk } = this.props;
                 onOk && onOk();
             })
-            .finally(() => this.setState({loading: false}));
+            .finally(() => this.setState({ loading: false }));
     };
 
     render() {
-        const {isEdit} = this.props;
-        const {loading, data} = this.state;
+        const { isEdit } = this.props;
+        const { loading, data } = this.state;
         const formProps = {
             labelWidth: 100,
         };
@@ -80,6 +80,7 @@ export default class EditModal extends Component {
                         label="角色名称"
                         name="name"
                         required
+                        autoFocus
                     />
                     <FormElement
                         {...formProps}

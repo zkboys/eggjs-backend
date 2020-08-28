@@ -1,10 +1,9 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {Icon} from 'src/library/components';
+import { Icon } from 'src/library/components';
 import config from 'src/commons/config-hoc';
-import localMenus from '../../menus';
-import {convertToTree} from 'src/library/utils/tree-utils';
-import {Table} from 'src/library/components';
+import { convertToTree } from 'src/library/utils/tree-utils';
+import { Table } from 'src/library/components';
 import './style.less';
 
 @config({
@@ -26,7 +25,7 @@ export default class index extends Component {
         {
             title: '名称', dataIndex: 'text', key: 'text',
             render: (value, record) => {
-                const {icon} = record;
+                const { icon } = record;
 
                 if (icon) return <span><Icon type={icon}/> {value}</span>;
 
@@ -36,7 +35,7 @@ export default class index extends Component {
         {
             title: '类型', dataIndex: 'type', key: 'type',
             render: (value, record) => {
-                const {url} = record;
+                const { url } = record;
                 if (url) return '站外菜单';
                 if (value === '1') return '站内菜单';
                 if (value === '2') return '功能';
@@ -51,26 +50,32 @@ export default class index extends Component {
     }
 
     handleSearch() {
-        localMenus().then(menus => {
-            // 菜单根据order 排序
-            const orderedData = [...menus].sort((a, b) => {
-                const aOrder = a.order || 0;
-                const bOrder = b.order || 0;
+        this.setState({ loading: true });
+        this.props.ajax
+            .get('/menus')
+            .then(res => {
+                const menus = res.map(item => ({ key: item.id, parentKey: item.parentId, ...item }));
+                // 菜单根据order 排序
+                const orderedData = [ ...menus ].sort((a, b) => {
+                    const aOrder = a.order || 0;
+                    const bOrder = b.order || 0;
 
-                // 如果order都不存在，根据 text 排序
-                if (!aOrder && !bOrder) {
-                    return a.text > b.text ? 1 : -1;
-                }
+                    // 如果order都不存在，根据 text 排序
+                    if (!aOrder && !bOrder) {
+                        return a.text > b.text ? 1 : -1;
+                    }
 
-                return bOrder - aOrder;
-            });
+                    return bOrder - aOrder;
+                });
 
-            const menuTreeData = convertToTree(orderedData);
+                const menuTreeData = convertToTree(orderedData);
 
-            // 默认展开全部
-            const expandedRowKeys = menus.map(item => item.key);
-            this.setState({menus: menuTreeData, expandedRowKeys});
-        });
+                // 默认展开全部
+                const expandedRowKeys = menus.map(item => item.key);
+                this.setState({ menus: menuTreeData, expandedRowKeys });
+            })
+            .finally(() => this.setState({ loading: false }));
+
     }
 
     render() {
@@ -80,17 +85,21 @@ export default class index extends Component {
             expandedRowKeys,
         } = this.state;
 
-        const {value, onChange, ...others} = this.props;
+        const { value, onChange, ...others } = this.props;
 
         return (
             <Table
                 expandable={{
                     expandedRowKeys: expandedRowKeys,
-                    onExpandedRowsChange: expandedRowKeys => this.setState({expandedRowKeys}),
+                    onExpandedRowsChange: expandedRowKeys => this.setState({ expandedRowKeys }),
                 }}
                 rowSelection={{
                     selectedRowKeys: value,
                     onChange,
+                    getCheckboxProps: record => {
+                        console.log(record);
+                        return {};
+                    },
                 }}
                 loading={loading}
                 columns={this.columns}

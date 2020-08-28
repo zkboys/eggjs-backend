@@ -13,7 +13,7 @@ export default config({
     const [ form ] = Form.useForm();
     const [ loading, fetchUser ] = useGet('/users/:id');
     const [ saving, saveUser ] = usePost('/register', { successTip: '添加成功！' });
-    const [ updating, updateUser ] = usePut('/users', { successTip: '修改成功！' });
+    const [ updating, updateUser ] = usePut('/users/:id', { successTip: '修改成功！' });
 
     async function fetchData() {
         if (loading) return;
@@ -62,6 +62,7 @@ export default config({
                     name="account"
                     required
                     noSpace
+                    autoFocus
                 />
                 <FormElement
                     {...formProps}
