@@ -32,4 +32,11 @@ module.exports = {
     enable: true,
     package: 'egg-router-plus',
   },
+
+  // swagger api 文档
+  swaggerdoc: {
+    enable: true,
+    package: 'egg-swagger-doc',
+  },
+
 };

@@ -55,5 +55,9 @@ module.exports = app => {
 
   // 所有页面请求 返回首页
   // TODO 区分是页面请求，还是其他ajax 请求、静态文件请求
-  router.get('/*', async ctx => ctx.render('index.html'));
+  router.get('/*', async (ctx, next) => {
+    if (ctx.path.startsWith('/swagger-')) return await next();
+
+    return ctx.render('index.html');
+  });
 };

@@ -25,7 +25,7 @@ $ npm run dev-back
 $ npm run dev-front
 
 # 浏览器访问
-$ open http://localhost:4000/
+$ open http://localhost:3030/
 ```
 
 ### 发布

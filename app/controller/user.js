@@ -4,8 +4,15 @@ const Controller = require('egg').Controller;
 const jwt = require('jsonwebtoken');
 const { getWeChatUsers } = require('../util/index');
 
+/**
+ * @Controller 用户
+ */
 module.exports = class UserController extends Controller {
-  // 登录
+  /**
+   * @Summary 登录
+   * @Router POST /login
+   * @response 200 JsonBody 返回结果
+   */
   async login(ctx) {
     ctx.validate({
       account: 'string',
