@@ -16,9 +16,10 @@ import {
 } from 'src/library/components';
 
 import EditModal from './EditModal';
-import defaultAvatar from './default_avatar.jpeg';
+import UserLink from 'src/components/user-link';
 
 export default config({
+    pageHead: true,
     path: '/users',
     title: '用户管理',
 })(() => {
@@ -35,7 +36,7 @@ export default config({
     // 请求相关定义 只是定义，不会触发请求，调用相关函数，才会触发请求
     const [ loading, fetchUsers ] = useGet('/users');
     const [ deleting, deleteUsers ] = api.deleteUsers(); // 可以单独封装成api
-    const [ deletingOne, deleteUser ] = useDel('/users/:id', { successTip: '删除成功！', errorTip: '删除失败！' });
+    const [ deletingOne, deleteUser ] = useDel('/users/:id', { successTip: '删除成功！' });
     const [ syncing, syncWeChatUsers ] = usePost('/syncWeChat', { successTip: '同步成功！', errorTip: '同步失败！' });
     const [ fetchRolesLoading, fetchRoles ] = useGet('/roles');
     const [ , relateRole ] = usePut('/relateUserRoles');
@@ -57,33 +58,15 @@ export default config({
     };
 
     const columns = [
+        { title: '账号', dataIndex: 'account', width: 200 },
         {
             title: '用户名', dataIndex: 'name', width: 200,
-            render: (name, record) => {
-                let { avatar } = record;
-
-                if (!avatar) avatar = defaultAvatar;
-
-                return (
-                    <>
-                        <img
-                            src={avatar}
-                            alt="头像"
-                            style={{
-                                width: 25,
-                                height: 25,
-                                marginRight: 8,
-                                borderRadius: '50%',
-                            }}
-                        />
-                        {name}
-                    </>
-                );
-            },
+            render: (name, record) => <UserLink user={record}/>,
         },
         {
             title: '角色', dataIndex: 'roles', width: 400,
             render: (value, recode) => {
+                if (recode.isAdmin) return '超级管理员';
                 const roleIds = value.map(item => item.id);
                 return (
                     <Select
@@ -91,7 +74,7 @@ export default config({
                         mode="multiple"
                         allowClear
                         showSearch
-                        optionFilterProp="children"
+                        optionFilterProp="label"
                         value={roleIds}
                         onChange={(ids) => handleRolesChange(ids, recode)}
                         options={roleOptions}
@@ -104,7 +87,10 @@ export default config({
         {
             title: '操作', dataIndex: 'operator', width: 100,
             render: (value, record) => {
-                const { id, name } = record;
+                const { id, name, frozen } = record;
+
+                if (frozen) return;
+
                 const items = [
                     {
                         label: '编辑',
@@ -162,7 +148,7 @@ export default config({
 
         Modal.confirm({
             title: '提示',
-            content: '您确定同步微信用户以及组织架构吗？当前数据会被覆盖，请谨慎操作！',
+            content: '您确定同步微信用户以及组织架构吗？',
             onOk: () => {
                 (async () => {
                     await syncWeChatUsers();
@@ -209,12 +195,13 @@ export default config({
     return (
         <PageContent loading={pageLoading}>
             <QueryBar>
-                <Form form={form} onFinish={condition => setCondition({ condition, pageSize, pageNum: 1 })}>
+                <Form name="user-query" form={form} onFinish={condition => setCondition({ condition, pageSize, pageNum: 1 })}>
                     <FormRow>
                         <FormElement
                             {...formProps}
-                            label="名称"
-                            name="name"
+                            width={300}
+                            label="名称/账号/邮箱"
+                            name="keyWord"
                         />
                         <FormElement
                             {...formProps}
